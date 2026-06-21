@@ -32,10 +32,14 @@ class ActiveWindowTyper:
             import keyboard
             import time
             
-            # Wait a brief moment to allow the user to physically release key combination
-            time.sleep(0.15)
+            # 1. Wait until modifier keys are physically released by the user (max 2 seconds timeout)
+            start_wait = time.time()
+            while time.time() - start_wait < 2.0:
+                if not any(keyboard.is_pressed(key) for key in ["ctrl", "shift", "alt", "win"]):
+                    break
+                time.sleep(0.02)
             
-            # Programmatically force release of modifier keys
+            # 2. Programmatically force release of modifier keys to ensure clean OS key state
             for key in ["ctrl", "shift", "alt", "win"]:
                 try:
                     pyautogui.keyUp(key)
