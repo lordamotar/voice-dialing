@@ -1,177 +1,160 @@
 # Offline Voice Typing (Офлайн-система голосового ввода для RU/KZ)
 
-Кроссплатформенное (Windows, Linux) консольное приложение для голосового ввода текста, которое работает **полностью офлайн** и печатает распознанную речь в любое активное окно (имитируя ввод с клавиатуры).
+[Русская версия (Russian Version)](README.ru.md)
 
-## Возможности
+An open-source, cross-platform (Windows, Linux) desktop utility for **offline voice typing** and **speech-to-text** transcription. It listens to your voice and types the recognized text directly into any active application window by mimicking real keyboard typing.
 
-- **Полная автономность**: Распознавание речи работает локально на вашем ПК без обращения к внешним серверам и API.
-- **Два движка на выбор**:
-  - **Vosk**: Легковесный движок, отлично работает на слабых процессорах без видеокарты.
-  - **faster-whisper**: Точный транскрибатор на базе CTranslate2, поддерживающий режимы GPU (CUDA) и CPU (квантование `int8`).
-- **Глобальная горячая клавиша**: Режим Push-to-Talk (запись идет, пока зажата горячая клавиша, например, `ctrl+space`).
-- **Исправление грамматики**: Автоматическая расстановка знаков препинания и заглавных букв через локальный сервер LanguageTool.
-- **Поддержка языков**: Полная поддержка русского (`ru`) и казахского (`kz`) языков.
+This project is built for **offline speech recognition** utilizing **Vosk** and **faster-whisper** engines, features **automatic punctuation** via **LanguageTool**, and simulates global keyboard input.
 
 ---
 
-## Системные требования
-
-- **Python**: Версии от `3.9` до `3.12`.
-- **Java (JRE/JDK)**: Требуется для работы модуля грамматической коррекции (`language-tool-python`). Скачать Java можно с [официального сайта Oracle](https://www.oracle.com/java/technologies/downloads/) или использовать OpenJDK. Без Java программа будет работать, но текст не будет автоматически исправляться.
-- **Linux (ограничения)**:
-  - Требуется графический сервер **X11** (Wayland на данный момент не поддерживается библиотеками `keyboard` и `pyautogui` «из коробки»).
-  - Требуются права суперпользователя (`sudo`) для работы библиотеки `keyboard` (глобальный перехват клавиш).
-  - Для эмуляции ввода необходимы утилиты `xclip` и `xsel` (установка: `sudo apt-get install xclip xsel`).
-- **CUDA toolkit (опционально для faster-whisper GPU)**: Если вы хотите задействовать видеокарту NVIDIA, у вас должны быть установлены драйверы NVIDIA и совместимая версия CUDA Toolkit (рекомендуется 12.x или 11.x) и cuDNN.
+## 🔍 SEO Keywords
+* **offline voice typing**
+* **speech-to-text**
+* **voice input python**
+* **speech recognition offline**
+* **Vosk speech-to-text**
+* **faster-whisper**
+* **automatic punctuation**
+* **grammar correction**
+* **keyboard typing simulation**
+* **Windows voice typing autostart**
+* **Linux voice typing**
+* **голосовой ввод офлайн**
+* **распознавание речи**
 
 ---
 
-## Установка
+## 🌟 Features
 
-Проект использует современный и быстрый менеджер пакетов `uv` (Astral).
+- **100% Offline & Private**: All **speech-to-text** recognition is executed locally on your machine. No cloud API calls, no internet telemetry, no external servers.
+- **Dual Recognition Engines**:
+  - **Vosk**: Ultra-lightweight and fast, optimized for standard CPU execution and low-end hardware.
+  - **faster-whisper**: High-accuracy transcription powered by CTranslate2 engine. Supports GPU (CUDA) and CPU with `int8` quantization.
+- **Push-to-Talk (Global Hotkey)**: Simple activation (e.g., `ctrl+space`). The app records while the hotkey is held down and transcribes upon release.
+- **Smart Grammar Correction**: Runs a local LanguageTool engine to automatically insert capital letters, commas, periods, and fix grammatical mistakes (requires Java).
+- **Multilingual Support**: High-performance models optimized for **Russian** (`ru`) and **Kazakh** (`kz`) languages.
+- **Visual Island Overlay**: Non-intrusive floating indicator showing the current status (Recording, Processing) without stealing window focus.
+- **System Autostart**: Easily configure the utility to launch silently on operating system boot (via the graphical settings panel).
 
-1. **Установите `uv`** (если еще не установлен):
-   - Windows (PowerShell):
-     ```powershell
-     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-     ```
-   - Linux/macOS:
-     ```bash
-     curl -LsSf https://astral.sh/uv/install.sh | sh
-     ```
+---
 
-2. **Клонируйте репозиторий и перейдите в его папку**:
+## 💻 System Requirements
+
+- **Python**: Versions `3.9` up to `3.12`.
+- **Java (JRE/JDK)**: Required only for the grammar correction module (`language-tool-python`). You can download Java from the [official Oracle website](https://www.oracle.com/java/technologies/downloads/) or install OpenJDK. The application will function without Java, but text correction will be skipped.
+- **Linux limitations**:
+  - Requires **X11** display server (Wayland is currently not supported for global keyboard hooks).
+  - Requires superuser (`sudo`) privileges for the `keyboard` library to intercept global hotkeys.
+  - Requires utility tools `xclip` and `xsel` (Install via `sudo apt-get install xclip xsel`).
+- **NVIDIA GPU (Optional for Whisper CUDA)**: Requires NVIDIA drivers, CUDA Toolkit (11.x or 12.x), and cuDNN installed on your system.
+
+---
+
+## 🚀 One-Click Installation
+
+The project uses the modern, lightning-fast Python package manager **`uv`**.
+
+### Windows
+1. Double-click the **`install.bat`** file in the root folder.
+2. The script will automatically install `uv` (if missing), fetch the required Python environment, download dependencies, and fetch the default Russian speech model.
+
+### Linux / macOS
+1. Open terminal and run:
    ```bash
-   git clone <url-репозитория> voice-dialing
-   cd voice-dialing
+   chmod +x install.sh
+   ./install.sh
    ```
-
-3. **Создайте виртуальное окружение и установите зависимости**:
-   ```bash
-   uv venv
-   uv sync
-   ```
+2. The script will set up the package manager, compile dependencies, and download the default model.
 
 ---
 
-## Подготовка моделей распознавания
+## ⚙️ Configuration & GUI Settings
 
-### 1. Модели для Vosk (требуется скачать вручную)
-Если вы выбрали движок `engine: "vosk"`, вам нужно скачать модель для нужного языка:
-1. Перейдите на сайт [alphacephei.com/vosk/models](https://alphacephei.com/vosk/models).
-2. Скачайте нужную модель:
-   - **Для русского языка**: Рекомендуется компактная модель [vosk-model-small-ru-0.22](https://alphacephei.com/vosk/models/vosk-model-small-ru-0.22.zip) (размер ~45 МБ) или большая [vosk-model-ru-0.42](https://alphacephei.com/vosk/models/vosk-model-ru-0.42.zip) (размер ~1.8 ГБ).
-   - **Для казахского языка**: [vosk-model-small-kz-0.22](https://alphacephei.com/vosk/models/vosk-model-small-kz-0.22.zip) (размер ~42 МБ).
-3. Создайте папку `models/` в корне проекта.
-4. Распакуйте скачанный архив в созданную папку так, чтобы путь к файлам выглядел следующим образом:
-   - `models/vosk-model-small-ru-0.22/am/...`
-   - `models/vosk-model-small-kz-0.22/am/...`
+You can customize all options using the built-in **Graphical Settings Panel** (GUI Dashboard):
 
-### 2. Модели для faster-whisper (скачиваются автоматически)
-Если вы выбрали движок `engine: "faster-whisper"`, модели (`tiny`, `base`, `small`, `medium`) будут автоматически скачаны из Hugging Face при первом запуске программы и сохранены в локальный кэш. Ничего вручную скачивать не нужно.
+### Launching the settings panel
+- **Windows**: Double-click **`run_settings.bat`**
+- **Linux / macOS**: Run `./run_settings.sh` in terminal
 
----
+The panel provides an elegant dark-themed interface to configure:
+1. **Engine Selection**: Toggle between **Vosk** and **Whisper**.
+2. **Device Configurations**: Force CPU execution or GPU (CUDA) acceleration.
+3. **Microphone Dropdown**: Dynamically scans and lists all plugged-in audio inputs with correct localized names.
+4. **General parameters**: Edit activation hotkeys (with a button to record combinations), adjust typing interval speeds, toggle the visual overlay status, and turn grammar correction on or off.
+5. **Autostart Toggle**: Check "Запускать вместе с системой (Автозагрузка)" to automatically start the app on OS boot (silently in the background on Windows).
 
-## Настройка конфигурации (`config.yaml`)
-
-При первом запуске приложение скопирует файл `config.example.yaml` в файл `config.yaml`. Вы можете настроить его под свои нужды:
-
+Alternatively, you can manually edit **`config.yaml`** (created automatically from `config.example.yaml` on first launch):
 ```yaml
-# Сочетание клавиш для записи (Push-to-Talk)
-hotkey: "ctrl+space"                 
-
-# Язык ввода: ru (русский) | kz (казахский)
-language: "ru"                       
-
-# Движок распознавания: vosk | faster-whisper
-engine: "vosk"                       
-
-# Режим вычислений (только для faster-whisper): auto | cpu | cuda
-device: "auto"                       
-
+hotkey: "ctrl+space"                 # Recording trigger shortcut
+language: "ru"                       # Default language: ru | kz
+engine: "vosk"                       # vosk | faster-whisper
+device: "auto"                       # auto | cpu | cuda (for whisper only)
 vosk:
-  # Путь к локальной папке модели Vosk
   model_path: "models/vosk-model-small-ru-0.22"
-
 faster_whisper:
-  # Размер модели: tiny (быстрая) | base | small | medium (точная, тяжелая)
-  model_size: "small"                
-  # Квантование для CPU-режима (int8 снижает потребление памяти и процессора)
-  compute_type_cpu: "int8"           
-  # Вычисления для GPU-режима (float16 оптимально для CUDA)
-  compute_type_gpu: "float16"        
-
-# Включить исправление грамматики и пунктуации через LanguageTool (требует Java)
-enable_grammar_correction: true      
-
-# Задержка между нажатиями клавиш при эмуляции печати текста (в секундах)
-typing_interval: 0.01                
-
-# Уровень логирования: DEBUG | INFO | WARNING | ERROR
-log_level: "INFO"                    
+  model_size: "small"                # tiny | base | small | medium
+  compute_type_cpu: "int8"           # CPU compute type
+  compute_type_gpu: "float16"        # GPU compute type
+enable_grammar_correction: true      # Enable LanguageTool grammar correction
+enable_overlay: true                 # Show visual island widget on recording
+input_device_index: null             # Audio input device index (null for default)
+typing_interval: 0.01                # Typing emulation delay between keys (seconds)
+log_level: "INFO"                    # Log level: DEBUG | INFO | WARNING | ERROR
 ```
 
 ---
 
-## Запуск приложения
+## 🏃 Starting the Application
 
-Запустите приложение с помощью команды:
+Once configured, run the speech-to-text runner:
+- **Windows**: Double-click **`run_app.bat`**
+- **Linux / macOS**: Run `./run_app.sh`
 
-```bash
-uv run python -m voice_typing.main
-```
-или
-```bash
-uv run python main.py
-```
-
-*Примечание для Linux*:
-```bash
-sudo uv run python -m voice_typing.main
-```
-
-После старта консоль выведет сообщение о готовности:
-`[ГОТОВО] Ожидание горячей клавиши 'ctrl+space'...`
-
-1. Зажмите указанную горячую клавишу (например, `Ctrl + Space`).
-2. Начните говорить в микрофон.
-3. Отпустите горячую клавишу. Программа распознает речь, применит грамматические правила и напечатает текст в текущее активное текстовое поле с пробелом в конце.
+### How to use:
+1. The terminal will display: `[ГОТОВО] Ожидание горячей клавиши 'ctrl+space'...`
+2. Hold down the hotkey combination (default: `Ctrl + Space`).
+3. Speak into your microphone.
+4. Release the hotkey. The application will translate your speech into text, fix spelling errors, and simulate keyboard typing directly into the active text field.
 
 ---
 
-## Рекомендации по железу
+## 🏋️ Hardware Recommendations
 
-| Сценарий использования | Выбор движка | Рекомендуемые параметры |
+| Scenario | Engine | Recommended Parameters |
 | :--- | :--- | :--- |
-| **Слабый ПК / Офисный ноутбук** (без GPU) | `vosk` | `engine: "vosk"`, модель `vosk-model-small-ru-0.22` |
-| **Средний ПК** (без GPU, средний CPU) | `faster-whisper` | `engine: "faster-whisper"`, `model_size: "tiny"` или `"base"`, `device: "cpu"`, `compute_type_cpu: "int8"` |
-| **Игровой ПК / Рабочая станция** (NVIDIA GPU с CUDA) | `faster-whisper` | `engine: "faster-whisper"`, `model_size: "small"` или `"medium"`, `device: "cuda"`, `compute_type_gpu: "float16"` |
+| **Low-end laptop / office PC** (no GPU) | `vosk` | `engine: "vosk"`, model `vosk-model-small-ru-0.22` |
+| **Mid-range desktop** (average CPU, no GPU) | `faster-whisper` | `engine: "faster-whisper"`, `model_size: "tiny"` or `"base"`, `device: "cpu"`, `compute_type_cpu: "int8"` |
+| **High-end / Gaming PC** (NVIDIA GPU with CUDA) | `faster-whisper` | `engine: "faster-whisper"`, `model_size: "small"` or `"medium"`, `device: "cuda"`, `compute_type_gpu: "float16"` |
 
 ---
 
-## Известные ограничения и Troubleshooting
+## 🛠️ Troubleshooting
 
-### 1. Ошибка «Не найдена Java / не запущен LanguageTool»
-- **Симптом**: Приложение выводит предупреждение о невозможности инициализации корректора. Голосовой ввод работает, но знаки препинания и заглавные буквы не исправляются.
-- **Решение**: Установите Java (JRE или JDK) версии 8 или выше и убедитесь, что путь к исполняемому файлу `java` прописан в системной переменной PATH.
+### 1. Java not found / LanguageTool fails
+- **Symptom**: Console logs show a Java error. Text is typed, but punctuation and capitals are not corrected.
+- **Solution**: Install Java JRE/JDK (version 8+) and add the `java` executable path to your system's Environment Variables (PATH).
 
-### 2. Ошибка «CUDA недоступна (CUDA не найдена или недоступна)»
-- **Симптом**: В режиме `device: auto` программа выводит лог об ошибке CUDA и автоматически откатывается на CPU.
-- **Решение**: Это нормальное поведение, если у вас нет видеокарты NVIDIA или не установлен CUDA Toolkit. Если видеокарта есть, убедитесь, что установлена библиотека `ctranslate2` с поддержкой CUDA, установлены драйверы NVIDIA и CUDA Toolkit версии 12.x / 11.x.
+### 2. CUDA is unavailable
+- **Symptom**: When `device: auto` is selected, the application prints a warning and falls back to CPU mode.
+- **Solution**: Ensure you have an NVIDIA graphic card, and install the compatible NVIDIA Drivers, CUDA Toolkit (12.x/11.x), and corresponding cuDNN libraries.
 
-### 3. Ошибка доступа к клавиатуре на Linux
-- **Симптом**: Сообщение о нехватке прав для перехвата клавиш.
-- **Решение**: Библиотека `keyboard` считывает глобальные нажатия клавиш на низком уровне. Запустите приложение с правами суперпользователя: `sudo uv run python main.py`.
-
-### 4. Не поддерживается Wayland на Linux
-- **Симптом**: Горячие клавиши или ввод текста не срабатывают в Wayland-сессиях Linux.
-- **Решение**: Переключите вашу графическую оболочку на сессию **X11** (выбирается на экране входа в систему Ubuntu/Debian/Fedora).
+### 3. Wayland display server issues (Linux)
+- **Symptom**: Hotkeys or keyboard simulation do not work.
+- **Solution**: The `keyboard` and `pyautogui` modules require X11. Switch your Linux session from Wayland to **X11** on the login screen.
 
 ---
 
-## Идеи на будущее (TODO)
+## 💝 Support & Donations (Благодарность)
 
-- [ ] Создать системный трей с индикацией процесса записи (иконка меняет цвет при активности).
-- [ ] Поддержка переключения языка ввода на лету по дополнительному сочетанию клавиш.
-- [ ] Автоматическое определение оптимального размера модели Whisper на основе объема доступной видеопамяти VRAM.
-- [ ] Оформление приложения в виде фоновой системной службы для автозапуска (systemd / Планировщик задач Windows).
+If you find this project useful, you can support the development by donating to:
+
+* **USDT (TON Network)**: 
+  `UQAgs40InZVUGmKJWdM4VKCn18jMru9I_BYWHGp7TdfJBc1T`
+* **Bank Card**: 
+  `4002890039798909`
+
+---
+
+## 📄 License
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
