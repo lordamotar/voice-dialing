@@ -230,8 +230,14 @@ class VoiceTypingApp:
 
             def on_settings_click(icon, item):
                 import subprocess
-                # Run settings GUI in a separate process
-                subprocess.Popen([sys.executable, "settings_gui.py"])
+                # Resolve settings_gui.py absolute path in project root
+                project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+                settings_script = os.path.join(project_dir, "settings_gui.py")
+                logger.info(f"Запуск настроек из трея: {settings_script}")
+                try:
+                    subprocess.Popen([sys.executable, settings_script], cwd=project_dir)
+                except Exception as e:
+                    logger.error(f"Не удалось запустить настройки: {e}")
 
             def on_exit_click(icon, item):
                 logger.info("Завершение работы через системный трей...")
@@ -246,9 +252,7 @@ class VoiceTypingApp:
                 os._exit(0)
 
             menu = pystray.Menu(
-                pystray.MenuItem("Голосовой ввод (активен)", lambda: None, enabled=False),
-                pystray.Menu.SEPARATOR,
-                pystray.MenuItem("Настройки", on_settings_click),
+                pystray.MenuItem("Настройки", on_settings_click, default=True),
                 pystray.MenuItem("Выход", on_exit_click)
             )
             
