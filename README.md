@@ -35,6 +35,7 @@ This project is built for **offline speech recognition** utilizing **Vosk** and 
 - **Smart Grammar Correction**: Runs a local LanguageTool engine to automatically insert capital letters, commas, periods, and fix grammatical mistakes (requires Java).
 - **Multilingual Support**: High-performance models optimized for **Russian** (`ru`) and **Kazakh** (`kz`) languages.
 - **Visual Island Overlay**: Non-intrusive floating indicator showing the current status (Recording, Processing) without stealing window focus.
+- **System Tray Integration**: The application minimizes to the system tray (notification area near the clock) and runs silently in the background. Right-clicking the tray icon allows you to quickly open "Settings" or "Exit" the app.
 - **System Autostart**: Easily configure the utility to launch silently on operating system boot (via the graphical settings panel).
 
 ---

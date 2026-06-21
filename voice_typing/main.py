@@ -203,6 +203,70 @@ class VoiceTypingApp:
         print(">>> Ожидание горячей клавиши...")
         self.session_active = False
 
+    def _setup_tray(self):
+        try:
+            import pystray
+            from PIL import Image, ImageDraw
+            
+            def create_icon_image():
+                # Create a 64x64 transparent image for a high quality tray icon
+                image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+                dc = ImageDraw.Draw(image)
+                
+                # Draw outer coral-rose circle
+                dc.ellipse([8, 8, 56, 56], fill="#F43F5E", outline="#FFFFFF", width=3)
+                
+                # Draw a simple mic silhouette in the center
+                # Mic body
+                dc.rounded_rectangle([26, 18, 38, 38], radius=6, fill="#FFFFFF")
+                # Mic stand stand (U-shape)
+                dc.arc([22, 26, 42, 44], 0, 180, fill="#FFFFFF", width=3)
+                # Vertical stand line
+                dc.line([32, 44, 32, 50], fill="#FFFFFF", width=3)
+                # Stand base
+                dc.line([24, 50, 40, 50], fill="#FFFFFF", width=3)
+                
+                return image
+
+            def on_settings_click(icon, item):
+                import subprocess
+                # Run settings GUI in a separate process
+                subprocess.Popen([sys.executable, "settings_gui.py"])
+
+            def on_exit_click(icon, item):
+                logger.info("Завершение работы через системный трей...")
+                icon.stop()
+                self.cleanup()
+                # Stop main thread
+                if hasattr(self, "root") and self.root:
+                    try:
+                        self.root.quit()
+                    except Exception:
+                        pass
+                os._exit(0)
+
+            menu = pystray.Menu(
+                pystray.MenuItem("Голосовой ввод (активен)", lambda: None, enabled=False),
+                pystray.Menu.SEPARATOR,
+                pystray.MenuItem("Настройки", on_settings_click),
+                pystray.MenuItem("Выход", on_exit_click)
+            )
+            
+            self.tray_icon = pystray.Icon(
+                "voice_typing", 
+                create_icon_image(), 
+                "Голосовой ввод (активен)", 
+                menu
+            )
+            
+            # Start tray icon in a separate daemon thread
+            threading.Thread(target=self.tray_icon.run, daemon=True).start()
+            logger.info("Системный трей успешно запущен.")
+            
+        except Exception as e:
+            logger.warning(f"Не удалось инициализировать системный трей: {e}")
+            self.tray_icon = None
+
     def _check_signals(self):
         """Periodically run a small callback to check for Ctrl+C interrupts."""
         if hasattr(self, "root") and self.root:
@@ -219,6 +283,9 @@ class VoiceTypingApp:
 
         # Start listening for the global hotkey
         self.hotkey_listener.start()
+
+        # Start system tray icon
+        self._setup_tray()
 
         # Setup visual overlay if enabled
         use_overlay = getattr(self.config, "enable_overlay", True)
@@ -259,6 +326,14 @@ class VoiceTypingApp:
     def cleanup(self):
         """Close resources and servers on shutdown."""
         logger.info("Завершение работы приложения...")
+        
+        # Stop tray icon
+        if hasattr(self, "tray_icon") and self.tray_icon:
+            try:
+                self.tray_icon.stop()
+            except Exception:
+                pass
+
         if self.hotkey_listener:
             self.hotkey_listener.stop()
         
