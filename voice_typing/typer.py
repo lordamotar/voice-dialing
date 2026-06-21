@@ -66,46 +66,90 @@ class ActiveWindowTyper:
             return False
 
         import ctypes
+        from ctypes import wintypes
         import time
         import pyautogui
+
+        # Declare ctypes return and argument types for 64-bit safety on Windows
+        HGLOBAL = wintypes.HANDLE
+        HWND = wintypes.HWND
+        UINT = wintypes.UINT
+        HANDLE = wintypes.HANDLE
+        LPVOID = wintypes.LPVOID
+        SIZE_T = ctypes.c_size_t
+
+        user32 = ctypes.windll.user32
+        kernel32 = ctypes.windll.kernel32
+
+        OpenClipboard = user32.OpenClipboard
+        OpenClipboard.argtypes = [HWND]
+        OpenClipboard.restype = wintypes.BOOL
+
+        CloseClipboard = user32.CloseClipboard
+        CloseClipboard.argtypes = []
+        CloseClipboard.restype = wintypes.BOOL
+
+        EmptyClipboard = user32.EmptyClipboard
+        EmptyClipboard.argtypes = []
+        EmptyClipboard.restype = wintypes.BOOL
+
+        GetClipboardData = user32.GetClipboardData
+        GetClipboardData.argtypes = [UINT]
+        GetClipboardData.restype = HANDLE
+
+        SetClipboardData = user32.SetClipboardData
+        SetClipboardData.argtypes = [UINT, HANDLE]
+        SetClipboardData.restype = HANDLE
+
+        GlobalAlloc = kernel32.GlobalAlloc
+        GlobalAlloc.argtypes = [UINT, SIZE_T]
+        GlobalAlloc.restype = HGLOBAL
+
+        GlobalLock = kernel32.GlobalLock
+        GlobalLock.argtypes = [HGLOBAL]
+        GlobalLock.restype = LPVOID
+
+        GlobalUnlock = kernel32.GlobalUnlock
+        GlobalUnlock.argtypes = [HGLOBAL]
+        GlobalUnlock.restype = wintypes.BOOL
 
         CF_UNICODETEXT = 13
         GMEM_MOVEABLE = 0x0002
 
         # 1. Save original clipboard text
         orig_text = None
-        if ctypes.windll.user32.OpenClipboard(None):
+        if OpenClipboard(None):
             try:
-                h_data = ctypes.windll.user32.GetClipboardData(CF_UNICODETEXT)
+                h_data = GetClipboardData(CF_UNICODETEXT)
                 if h_data:
-                    p_mem = ctypes.windll.kernel32.GlobalLock(h_data)
+                    p_mem = GlobalLock(h_data)
                     if p_mem:
                         orig_text = ctypes.wstring_at(p_mem)
-                        ctypes.windll.kernel32.GlobalUnlock(h_data)
-            except Exception:
-                pass
+                        GlobalUnlock(h_data)
+            except Exception as e:
+                logger.debug(f"Ошибка при сохранении буфера: {e}")
             finally:
-                ctypes.windll.user32.CloseClipboard()
+                CloseClipboard()
 
         # 2. Set new text to clipboard
         success = False
-        if ctypes.windll.user32.OpenClipboard(None):
+        if OpenClipboard(None):
             try:
-                ctypes.windll.user32.EmptyClipboard()
+                EmptyClipboard()
                 text_bytes = (text + '\0').encode('utf-16-le')
                 text_len = len(text_bytes)
-                h_global = ctypes.windll.kernel32.GlobalAlloc(GMEM_MOVEABLE, text_len)
+                h_global = GlobalAlloc(GMEM_MOVEABLE, text_len)
                 if h_global:
-                    p_mem = ctypes.windll.kernel32.GlobalLock(h_global)
+                    p_mem = GlobalLock(h_global)
                     if p_mem:
                         ctypes.memmove(p_mem, text_bytes, text_len)
-                        ctypes.windll.kernel32.GlobalUnlock(h_global)
-                        if ctypes.windll.user32.SetClipboardData(CF_UNICODETEXT, h_global):
+                        GlobalUnlock(h_global)
+                        if SetClipboardData(CF_UNICODETEXT, h_global):
                             success = True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Ошибка при записи в буфер: {e}")
             finally:
-                ctypes.windll.user32.CloseClipboard()
+                CloseClipboard()
 
         if not success:
             return False
@@ -116,21 +160,21 @@ class ActiveWindowTyper:
         # 4. Restore original clipboard text after a tiny delay
         if orig_text is not None:
             time.sleep(0.12)  # Wait for paste to complete in active window
-            if ctypes.windll.user32.OpenClipboard(None):
+            if OpenClipboard(None):
                 try:
-                    ctypes.windll.user32.EmptyClipboard()
+                    EmptyClipboard()
                     text_bytes = (orig_text + '\0').encode('utf-16-le')
                     text_len = len(text_bytes)
-                    h_global = ctypes.windll.kernel32.GlobalAlloc(GMEM_MOVEABLE, text_len)
+                    h_global = GlobalAlloc(GMEM_MOVEABLE, text_len)
                     if h_global:
-                        p_mem = ctypes.windll.kernel32.GlobalLock(h_global)
+                        p_mem = GlobalLock(h_global)
                         if p_mem:
                             ctypes.memmove(p_mem, text_bytes, text_len)
-                            ctypes.windll.kernel32.GlobalUnlock(h_global)
-                            ctypes.windll.user32.SetClipboardData(CF_UNICODETEXT, h_global)
-                except Exception:
-                    pass
+                            GlobalUnlock(h_global)
+                            SetClipboardData(CF_UNICODETEXT, h_global)
+                except Exception as e:
+                    logger.debug(f"Ошибка при восстановлении буфера: {e}")
                 finally:
-                    ctypes.windll.user32.CloseClipboard()
+                    CloseClipboard()
 
         return True
