@@ -1,6 +1,4 @@
-def main():
-    print("Hello from voice-dialing!")
-
+from voice_typing.main import main
 
 if __name__ == "__main__":
     main()

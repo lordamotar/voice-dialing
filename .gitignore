@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local voice-dialing configs, logs and models
+config.yaml
+/logs/
+/models/

@@ -1,0 +1,22 @@
+# Настройки горячих клавиш и языка ввода
+hotkey: "ctrl+space"                 # Сочетание клавиш для записи (Push-to-Talk)
+language: "ru"                       # Язык по умолчанию: ru | kz
+
+# Выбор движка распознавания
+engine: "vosk"                       # vosk | faster-whisper
+device: "auto"                       # auto | cpu | cuda (актуально только для faster-whisper)
+
+# Конфигурация для Vosk
+vosk:
+  model_path: "models/vosk-model-small-ru-0.22"
+
+# Конфигурация для faster-whisper
+faster_whisper:
+  model_size: "small"                # tiny | base | small | medium — размер модели
+  compute_type_cpu: "int8"           # тип вычислений для CPU (рекомендуется int8)
+  compute_type_gpu: "float16"        # тип вычислений для GPU (float16/float32)
+
+# Дополнительные параметры
+enable_grammar_correction: true      # Включить коррекцию пунктуации и грамматики (требуется Java)
+typing_interval: 0.01                # Задержка между нажатиями клавиш при эмуляции ввода (в секундах)
+log_level: "INFO"                    # Уровень логирования: DEBUG | INFO | WARNING | ERROR

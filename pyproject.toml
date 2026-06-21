@@ -1,7 +1,17 @@
 [project]
 name = "voice-dialing"
 version = "0.1.0"
-description = "Add your description here"
+description = "Offline voice input system"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+requires-python = ">=3.9,<3.13"
+dependencies = [
+    "vosk>=0.3.45",
+    "faster-whisper>=1.0.0",
+    "sounddevice>=0.4.6",
+    "pyaudio>=0.2.14",
+    "pyautogui>=0.9.54",
+    "keyboard>=0.13.5",
+    "language-tool-python>=2.7.1",
+    "pyyaml>=6.0.1",
+    "numpy>=1.24.0"
+]
