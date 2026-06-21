@@ -78,6 +78,13 @@ class Config:
 
         # 7. Additional settings
         self.enable_grammar_correction = bool(self._config_data.get("enable_grammar_correction", True))
+        self.enable_overlay = bool(self._config_data.get("enable_overlay", True))
+        self.input_device_index = self._config_data.get("input_device_index")
+        if self.input_device_index is not None:
+            try:
+                self.input_device_index = int(self.input_device_index)
+            except (ValueError, TypeError):
+                self.input_device_index = None
         
         try:
             self.typing_interval = float(self._config_data.get("typing_interval", 0.01))

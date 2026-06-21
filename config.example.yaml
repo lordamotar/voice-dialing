@@ -18,5 +18,7 @@ faster_whisper:
 
 # Дополнительные параметры
 enable_grammar_correction: true      # Включить коррекцию пунктуации и грамматики (требуется Java)
+enable_overlay: true                 # Показывать красивый графический оверлей во время записи
+input_device_index: null             # Индекс устройства ввода звука (null - по умолчанию)
 typing_interval: 0.01                # Задержка между нажатиями клавиш при эмуляции ввода (в секундах)
 log_level: "INFO"                    # Уровень логирования: DEBUG | INFO | WARNING | ERROR

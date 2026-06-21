@@ -10,9 +10,10 @@ class AudioCaptureError(Exception):
     pass
 
 class AudioCapture:
-    def __init__(self, sample_rate: int = 16000, block_size: int = 4000):
+    def __init__(self, sample_rate: int = 16000, block_size: int = 4000, device_index: Optional[int] = None):
         self.sample_rate = sample_rate
         self.block_size = block_size
+        self.device_index = device_index
         self.queue: queue.Queue = queue.Queue()
         self.is_recording = False
         
@@ -46,6 +47,7 @@ class AudioCapture:
                     self.queue.put(bytes(indata))
 
             self._sd_stream = sd.RawInputStream(
+                device=self.device_index,
                 samplerate=self.sample_rate,
                 blocksize=self.block_size,
                 dtype='int16',
@@ -77,6 +79,7 @@ class AudioCapture:
                 channels=1,
                 rate=self.sample_rate,
                 input=True,
+                input_device_index=self.device_index,
                 frames_per_buffer=self.block_size
             )
             

@@ -63,7 +63,11 @@ class VoiceTypingApp:
             return False
 
         # 3. Initialize Audio Capture
-        self.audio_capture = AudioCapture(sample_rate=16000, block_size=4000)
+        self.audio_capture = AudioCapture(
+            sample_rate=16000, 
+            block_size=4000,
+            device_index=self.config.input_device_index
+        )
 
         # 4. Initialize Grammar Corrector
         self.corrector = GrammarCorrector(
@@ -118,6 +122,9 @@ class VoiceTypingApp:
         self.session_active = True
         self.is_recording = True
         
+        if hasattr(self, "overlay") and self.overlay:
+            self.overlay.show()
+        
         try:
             self.audio_capture.start()
             self.processing_thread = threading.Thread(
@@ -129,6 +136,8 @@ class VoiceTypingApp:
             print(f"\n[ОШИБКА ЗАПИСИ] {e}")
             self.is_recording = False
             self.session_active = False
+            if hasattr(self, "overlay") and self.overlay:
+                self.overlay.hide()
 
     def on_stop_recording(self):
         """Callback triggered when the hotkey is released."""
@@ -137,6 +146,9 @@ class VoiceTypingApp:
         
         self.is_recording = False
         logger.info("Сигнал остановки записи получен.")
+        
+        if hasattr(self, "overlay") and self.overlay:
+            self.overlay.hide()
 
     def _recording_and_typing_session(self):
         """Target for processing thread. Handles streaming audio data and typing result."""
@@ -200,10 +212,34 @@ class VoiceTypingApp:
         # Start listening for the global hotkey
         self.hotkey_listener.start()
 
+        # Setup visual overlay if enabled
+        use_overlay = getattr(self.config, "enable_overlay", True)
+        if use_overlay:
+            try:
+                import tkinter as tk
+                from voice_typing.overlay import RecordingOverlay
+                
+                self.root = tk.Tk()
+                self.overlay = RecordingOverlay(self.root, self.config.hotkey)
+            except Exception as e:
+                logger.warning(f"Не удалось инициализировать оверлей: {e}. Работа без оверлея.")
+                use_overlay = False
+                self.root = None
+                self.overlay = None
+        else:
+            self.root = None
+            self.overlay = None
+
         try:
-            # Main thread waits here while background thread works
-            while self.hotkey_listener.running:
-                time.sleep(0.5)
+            if use_overlay and self.root:
+                try:
+                    self.root.mainloop()
+                except KeyboardInterrupt:
+                    print("\nПолучен сигнал завершения (Ctrl+C). Выхожу...")
+            else:
+                # Main thread waits here while background thread works
+                while self.hotkey_listener.running:
+                    time.sleep(0.5)
         except KeyboardInterrupt:
             print("\nПолучен сигнал завершения (Ctrl+C). Выхожу...")
         finally:
@@ -220,6 +256,12 @@ class VoiceTypingApp:
 
         if self.corrector:
             self.corrector.close()
+
+        if hasattr(self, "root") and self.root:
+            try:
+                self.root.destroy()
+            except Exception:
+                pass
             
         print("[ИНФО] Работа завершена.")
 

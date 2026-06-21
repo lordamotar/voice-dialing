@@ -223,3 +223,4 @@ __marimo__/
 config.yaml
 /logs/
 /models/
+/scratch/
