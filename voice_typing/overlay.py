@@ -90,6 +90,21 @@ class RecordingOverlay:
             anchor="w"
         )
         
+        # Force window handle creation (HWND) before applying Windows style
+        self.root.update_idletasks()
+        
+        # Apply WS_EX_NOACTIVATE style so window never steals focus
+        try:
+            import ctypes
+            GWL_EXSTYLE = -20
+            WS_EX_NOACTIVATE = 0x08000000
+            
+            hwnd = self.root.winfo_id()
+            style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+            ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style | WS_EX_NOACTIVATE)
+        except Exception as e:
+            logger.warning(f"Не удалось применить стиль WS_EX_NOACTIVATE к оверлею: {e}")
+            
         # Hide window by default on startup
         self.root.withdraw()
         logger.info("Графический оверлей успешно создан.")

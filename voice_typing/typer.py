@@ -28,6 +28,20 @@ class ActiveWindowTyper:
         
         try:
             import pyautogui
+            import keyboard
+            import time
+            
+            # Wait a brief moment to allow the user to physically release key combination
+            time.sleep(0.15)
+            
+            # Programmatically force release of modifier keys
+            for key in ["ctrl", "shift", "alt", "win"]:
+                try:
+                    pyautogui.keyUp(key)
+                    keyboard.release(key)
+                except Exception:
+                    pass
+            
             pyautogui.write(text_to_type, interval=self.interval)
         except Exception as e:
             logger.error(f"Ошибка при симуляции ввода с помощью pyautogui: {e}")

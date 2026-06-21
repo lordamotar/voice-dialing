@@ -203,6 +203,14 @@ class VoiceTypingApp:
         print(">>> Ожидание горячей клавиши...")
         self.session_active = False
 
+    def _check_signals(self):
+        """Periodically run a small callback to check for Ctrl+C interrupts."""
+        if hasattr(self, "root") and self.root:
+            try:
+                self.root.after(100, self._check_signals)
+            except Exception:
+                pass
+
     def run(self):
         """Main application runner loop."""
         if not self.setup():
@@ -221,6 +229,9 @@ class VoiceTypingApp:
                 
                 self.root = tk.Tk()
                 self.overlay = RecordingOverlay(self.root, self.config.hotkey)
+                
+                # Start periodic signal checks to process KeyboardInterrupt (Ctrl+C)
+                self._check_signals()
             except Exception as e:
                 logger.warning(f"Не удалось инициализировать оверлей: {e}. Работа без оверлея.")
                 use_overlay = False
