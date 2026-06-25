@@ -1,7 +1,31 @@
 import os
 import logging
+import platform
+import time
 
 logger = logging.getLogger(__name__)
+
+def is_modifier_pressed() -> bool:
+    """Check if any modifier keys (Ctrl, Shift, Alt, Win) are physically pressed."""
+    if platform.system() == "Windows":
+        try:
+            import ctypes
+            # GetAsyncKeyState: 0x11 (VK_CONTROL), 0x10 (VK_SHIFT), 0x12 (VK_MENU/ALT), 0x5B (VK_LWIN), 0x5C (VK_RWIN)
+            # If the high-order bit is 1 (0x8000), the key is down.
+            get_async_key_state = ctypes.windll.user32.GetAsyncKeyState
+            for vk in [0x11, 0x10, 0x12, 0x5B, 0x5C]:
+                if get_async_key_state(vk) & 0x8000:
+                    return True
+            return False
+        except Exception as e:
+            logger.debug(f"Ошибка GetAsyncKeyState: {e}")
+            
+    # Fallback using keyboard library
+    try:
+        import keyboard
+        return any(keyboard.is_pressed(key) for key in ["ctrl", "shift", "alt", "windows"])
+    except Exception:
+        return False
 
 class ActiveWindowTyper:
     def __init__(self, interval: float = 0.01):
@@ -30,14 +54,21 @@ class ActiveWindowTyper:
         try:
             import keyboard
             import pyautogui
-            import time
             
             # 1. Wait until modifier keys are physically released by the user (max 2 seconds timeout)
             start_wait = time.time()
+            released = False
             while time.time() - start_wait < 2.0:
-                if not any(keyboard.is_pressed(key) for key in ["ctrl", "shift", "alt", "win"]):
+                if not is_modifier_pressed():
+                    released = True
                     break
-                time.sleep(0.02)
+                time.sleep(0.01)
+            
+            if released:
+                # Small pause to let the OS process the key release event and settle keyboard state
+                time.sleep(0.05)
+            else:
+                logger.warning("Превышено время ожидания отпускания клавиш-модификаторов. Ввод может вызвать горячие клавиши.")
             
             # 2. Programmatically force release of modifier keys to ensure clean OS key state
             for key in ["ctrl", "shift", "alt", "win"]:
