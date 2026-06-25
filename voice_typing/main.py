@@ -271,6 +271,20 @@ class VoiceTypingApp:
             logger.warning(f"Не удалось инициализировать системный трей: {e}")
             self.tray_icon = None
 
+    def _hide_console(self):
+        """Hide the console window on Windows if running in background."""
+        import platform
+        if platform.system() == "Windows":
+            try:
+                import ctypes
+                hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+                if hwnd:
+                    # SW_HIDE = 0
+                    ctypes.windll.user32.ShowWindow(hwnd, 0)
+                    logger.info("Консольное окно успешно скрыто с панели задач.")
+            except Exception as e:
+                logger.warning(f"Не удалось скрыть консольное окно: {e}")
+
     def _check_signals(self):
         """Periodically run a small callback to check for Ctrl+C interrupts."""
         if hasattr(self, "root") and self.root:
@@ -284,6 +298,9 @@ class VoiceTypingApp:
         if not self.setup():
             print("\n[КРИТИЧЕСКАЯ ОШИБКА] Не удалось инициализировать приложение. Выход.")
             return
+
+        # Hide the console window programmatically
+        self._hide_console()
 
         # Start listening for the global hotkey
         self.hotkey_listener.start()
