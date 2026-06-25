@@ -109,7 +109,9 @@ log_level: "INFO"                    # Log level: DEBUG | INFO | WARNING | ERROR
 ## 🏃 Starting the Application
 
 Once configured, run the speech-to-text runner:
-- **Windows**: Double-click **`run_app.bat`**
+- **Windows**: 
+  - To run in background mode (with no console window on the taskbar): double-click **`run_silent.vbs`** (recommended).
+  - To run with console visible: double-click **`run_app.bat`**
 - **Linux / macOS**: Run `./run_app.sh`
 
 ### How to use:
