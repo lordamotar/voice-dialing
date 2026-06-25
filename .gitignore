@@ -224,3 +224,4 @@ config.yaml
 /logs/
 /models/
 /scratch/
+voice-dialing.exe

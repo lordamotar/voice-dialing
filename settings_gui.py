@@ -194,16 +194,32 @@ def toggle_autostart(enable: bool):
                     os.makedirs(startup_dir, exist_ok=True)
                 except Exception:
                     pass
-            project_dir = os.path.abspath(os.path.dirname(__file__))
-            batch_content = f'@echo off\ncd /d "{project_dir}"\nuv run python main.py\n'
+            
             try:
-                with open(batch_path, "w", encoding="cp866") as f:
-                    f.write(batch_content)
-                    
-                vbs_content = f'Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run chr(34) & "{batch_path}" & chr(34), 0\nSet WshShell = Nothing\n'
-                with open(vbs_path, "w", encoding="utf-8") as f:
-                    f.write(vbs_content)
-                logger.info("Автозагрузка включена в Windows (созданы файлы в папке Startup).")
+                if getattr(sys, "frozen", False):
+                    # For compiled EXE, run it directly without batch helper
+                    exe_path = sys.executable
+                    vbs_content = f'Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run chr(34) & "{exe_path}" & chr(34), 0, False\nSet WshShell = Nothing\n'
+                    with open(vbs_path, "w", encoding="utf-8") as f:
+                        f.write(vbs_content)
+                    # Clean up old batch file if it existed
+                    if os.path.exists(batch_path):
+                        try:
+                            os.remove(batch_path)
+                        except Exception:
+                            pass
+                    logger.info("Автозагрузка включена в Windows (запуск EXE напрямую).")
+                else:
+                    # For python development run, use batch helper to run uv/python
+                    project_dir = os.path.abspath(os.path.dirname(__file__))
+                    batch_content = f'@echo off\ncd /d "{project_dir}"\nuv run python main.py\n'
+                    with open(batch_path, "w", encoding="cp866") as f:
+                        f.write(batch_content)
+                        
+                    vbs_content = f'Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run chr(34) & "{batch_path}" & chr(34), 0\nSet WshShell = Nothing\n'
+                    with open(vbs_path, "w", encoding="utf-8") as f:
+                        f.write(vbs_content)
+                    logger.info("Автозагрузка включена в Windows (созданы файлы в папке Startup).")
             except Exception as e:
                 logger.error(f"Не удалось настроить автозагрузку в Windows: {e}")
         else:

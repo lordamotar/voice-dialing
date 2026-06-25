@@ -232,10 +232,13 @@ class VoiceTypingApp:
                 import subprocess
                 # Resolve settings_gui.py absolute path in project root
                 project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-                settings_script = os.path.join(project_dir, "settings_gui.py")
-                logger.info(f"Запуск настроек из трея: {settings_script}")
+                logger.info("Запуск настроек из трея...")
                 try:
-                    subprocess.Popen([sys.executable, settings_script], cwd=project_dir)
+                    if getattr(sys, "frozen", False):
+                        subprocess.Popen([sys.executable, "--settings"], cwd=project_dir)
+                    else:
+                        settings_script = os.path.join(project_dir, "settings_gui.py")
+                        subprocess.Popen([sys.executable, settings_script], cwd=project_dir)
                 except Exception as e:
                     logger.error(f"Не удалось запустить настройки: {e}")
 
